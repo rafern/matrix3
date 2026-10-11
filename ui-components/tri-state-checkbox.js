@@ -10,17 +10,12 @@ div {
     min-width: var(--min-len);
     min-height: var(--min-len);
     overflow: hidden;
-    border: 1px solid grey;
     user-select: none;
     display: inline-block;
 
     &:not(.disabled) {
         cursor: pointer;
     }
-}
-
-div:hover:not(.disabled), .hover:not(.disabled) {
-    filter: brightness(1.3);
 }
 
 div.passive-allow {
@@ -137,7 +132,7 @@ class TriStateCheckbox extends HTMLElement {
     }
 
     static get observedAttributes() {
-        return ['hover', 'violation', 'disabled'];
+        return ['violation', 'disabled'];
     }
 
     /**
@@ -187,7 +182,6 @@ class TriStateCheckbox extends HTMLElement {
         this.#div.addEventListener('contextmenu', this.#onContext);
         this.#updateState();
         this.#updatePassiveState();
-        this.#updateAttr_Hover();
         this.#updateAttr_Violation();
         this.#updateAttr_Disabled();
 
@@ -220,7 +214,6 @@ class TriStateCheckbox extends HTMLElement {
 
     attributeChangedCallback(name, _oldValue, _newValue) {
         switch (name) {
-        case 'hover': this.#updateAttr_Hover(); break;
         case 'violation': this.#updateAttr_Violation(); break;
         case 'disabled': this.#updateAttr_Disabled(); break;
         }
@@ -258,10 +251,6 @@ class TriStateCheckbox extends HTMLElement {
         } else {
             elem.classList.remove(className);
         }
-    }
-
-    #updateAttr_Hover() {
-        this.#addOrDelClass(this.#div, this.hasAttribute('hover'), 'hover');
     }
 
     #updateAttr_Violation() {

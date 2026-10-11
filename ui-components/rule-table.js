@@ -32,18 +32,51 @@ export const RULE_DEFAULT_SOURCES = Object.freeze([
     "https:",
 ]);
 
+function tableHoverColSelectors(colCount, extraPseudo = '') {
+    let selectors = [];
+    for (let c = 0; c < colCount; c++) {
+        selectors.push(`.table:has(.cell:nth-child(${colCount}n+${c}):hover) .cell:nth-child(${colCount}n+${c})${extraPseudo}`);
+    }
+
+    return selectors.join(',\n');
+}
+
 const STYLES = `
+:host {
+    --fallback-color: Field;
+}
+
 .table {
     display: grid;
     grid-template-columns: 1fr repeat(${RULE_DIRECTIVES.length}, min-content);
+    border-right: 1px solid currentColor;
+    border-bottom: 1px solid currentColor;
+}
+
+.row {
+    display: grid;
+    grid-column: span ${RULE_DIRECTIVES.length + 1};
+    grid-template-columns: subgrid;
+    border-top: 1px solid currentColor;
+
+    &:hover {
+        background: var(--fallback-color);
+    }
 }
 
 .cell {
-    border: 1px solid grey;
     text-align: center;
+    border-left: 1px solid currentColor;
+}
+
+${tableHoverColSelectors(RULE_DIRECTIVES.length + 1, ':not(.source-header-cell):not(.lead-header-cell)')},
+.row:hover {
+    background: var(--fallback-color);
+    filter: grayscale(35%) brightness(1.25);
 }
 
 .lead-header-cell, .directive-header-cell {
+    user-select: none;
     font-size: 16px;
     font-weight: 700;
 }
@@ -93,23 +126,34 @@ class RuleTable extends HTMLElement {
         this.#tableDiv = document.createElement('div');
         this.#tableDiv.classList.add('table');
 
-        const labelDiv = document.createElement('div');
-        labelDiv.classList.add('cell', 'lead-header-cell');
-        labelDiv.textContent = 'Source';
-        this.#tableDiv.appendChild(labelDiv);
+        const headerRowDiv = document.createElement('div');
+        headerRowDiv.classList.add('row');
+        this.#tableDiv.appendChild(headerRowDiv);
+
+        const leadDiv = document.createElement('div');
+        leadDiv.classList.add('cell', 'lead-header-cell');
+        leadDiv.textContent = 'Source';
+        headerRowDiv.appendChild(leadDiv);
 
         for (let d = 0; d < RULE_DIRECTIVES.length; d++) {
             const dirDiv = document.createElement('div');
-            dirDiv.classList.add('cell', 'directive-header-cell');
+            dirDiv.classList.add('directive-header-cell');
             dirDiv.textContent = RULE_DIRECTIVE_EMOJIS[d];
-            this.#tableDiv.appendChild(dirDiv);
+            const dirChk = document.createElement('tri-state-checkbox');
+            dirChk.classList.add('cell');
+            dirChk.appendChild(dirDiv);
+            headerRowDiv.appendChild(dirChk);
         }
 
-        for (let s = 0; s < this.#sources.length; s++) {
+        for (let s = 1; s < this.#sources.length; s++) {
             this.#addSourceUI(s);
         }
 
         shadow.appendChild(this.#tableDiv);
+    }
+
+    disconnectedCallback() {
+        this.#tableDiv = undefined;
     }
 
     /**
@@ -126,14 +170,19 @@ class RuleTable extends HTMLElement {
     #addSourceUI(sourceIdx) {
         if (!this.#tableDiv) return;
 
+        const rowDiv = document.createElement('div');
+        rowDiv.classList.add('row');
+        this.#tableDiv.appendChild(rowDiv);
+
         const srcDiv = document.createElement('div');
         srcDiv.classList.add('cell', 'source-header-cell');
         srcDiv.textContent = this.#sources[sourceIdx];
-        this.#tableDiv.appendChild(srcDiv);
+        rowDiv.appendChild(srcDiv);
 
         for (let d = 0; d < RULE_DIRECTIVES.length; d++) {
-            const dirDiv = document.createElement('tri-state-checkbox');
-            this.#tableDiv.appendChild(dirDiv);
+            const dirChk = document.createElement('tri-state-checkbox');
+            dirChk.classList.add('cell');
+            rowDiv.appendChild(dirChk);
         }
     }
 
