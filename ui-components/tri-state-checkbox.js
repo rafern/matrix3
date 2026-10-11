@@ -84,6 +84,11 @@ div.violation {
 }
 `;
 
+/**
+ * Enum for tri-state-checkbox state and passiveState
+ * @readonly
+ * @enum {number}
+ */
 export const State = Object.freeze({
     PASSTHROUGH: 0,
     ALLOW: 1,
